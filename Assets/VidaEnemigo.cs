@@ -1,26 +1,48 @@
 using UnityEngine;
-using System.Collections; 
+using UnityEngine.AI;
 
 public class VidaEnemigo : MonoBehaviour
 {
-    private Renderer miRender;
-    private Color colorOriginal;
+    public int vidaMaxima = 100;
+    private int vidaActual;
+    
+    private Animator animator;
+    private EnemyAI scriptIA;
+    private Collider miCollider;
+    private NavMeshAgent agente;
 
     void Start()
     {
-        miRender = GetComponent<Renderer>();
-        colorOriginal = miRender.material.color;
+        vidaActual = vidaMaxima;
+        animator = GetComponent<Animator>();
+        scriptIA = GetComponent<EnemyAI>();
+        miCollider = GetComponent<CapsuleCollider>();
+        agente = GetComponent<NavMeshAgent>();
     }
 
-    public void RecibirGolpe()
+    public void RecibirGolpe() 
     {
-        StartCoroutine(FlashRojo());
+        if (vidaActual <= 0) return;
+
+        vidaActual -= 25;
+        
+        if (animator != null) animator.SetTrigger("Hurt"); 
+
+        if (vidaActual <= 0)
+        {
+            Morir();
+        }
     }
 
-    IEnumerator FlashRojo()
+    void Morir()
     {
-        miRender.material.color = Color.red; 
-        yield return new WaitForSeconds(0.3f); 
-        miRender.material.color = colorOriginal; 
+        if(animator != null) animator.SetTrigger("Die");
+
+        if(scriptIA != null) scriptIA.enabled = false;
+        if(agente != null) agente.enabled = false;
+
+        if(miCollider != null) miCollider.enabled = false;
+
+        Destroy(gameObject, 5f);
     }
 }
